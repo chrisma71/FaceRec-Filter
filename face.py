@@ -4,12 +4,18 @@ import os
 # Load the pre-trained Haar Cascade classifier for face detection
 face_cascade = cv2.CascadeClassifier(cv2.data.haarcascades + 'haarcascade_frontalface_default.xml')
 
-# Load the image to be displayed on top of the face
-overlay_image_path = os.path.abspath('./hair-png-man.png')  # Ensure the image is in the same directory or provide the full path
-overlay_image = cv2.imread(overlay_image_path, cv2.IMREAD_UNCHANGED)
+# List of overlay images
+overlay_image_paths = [
+    os.path.abspath('./hair-png-man.png'),  # Ensure these images are in the same directory or provide the full path
+    os.path.abspath('./catear.png'),
+]
+
+# Load all overlay images
+overlay_images = [cv2.imread(path, cv2.IMREAD_UNCHANGED) for path in overlay_image_paths]
+current_overlay_index = 0
 
 # Function to overlay image on top of detected face
-def overlay_image_on_face(frame, face_rect, overlay_image, offset_fraction=0.8):
+def overlay_image_on_face(frame, face_rect, overlay_image, offset_fraction=0.6):
     x, y, w, h = face_rect
     overlay_resized = cv2.resize(overlay_image, (w, h))
 
@@ -75,7 +81,7 @@ while True:
     for (x, y, w, h) in faces:
         cv2.rectangle(frame, (x, y), (x+w, y+h), (255, 0, 0), 2)
         if toggle_overlay:
-            overlay_image_on_face(frame, (x, y, w, h), overlay_image)
+            overlay_image_on_face(frame, (x, y, w, h), overlay_images[current_overlay_index])
 
     # Display the resulting frame
     cv2.imshow('Face Detection', frame)
@@ -84,6 +90,10 @@ while True:
     key = cv2.waitKey(1) & 0xFF
     if key == ord('q'):
         toggle_overlay = not toggle_overlay  # Toggle the overlay image
+    elif key == ord('n'):
+        current_overlay_index = (current_overlay_index + 1) % len(overlay_images)  # Next overlay image
+    elif key == ord('m'):
+        current_overlay_index = (current_overlay_index - 1) % len(overlay_images)  # Previous overlay image
     elif key == ord('e'):
         break  # Exit the loop with 'e'
 
